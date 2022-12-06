@@ -1,33 +1,61 @@
 package com.sparta.hanghaememo.service;
 
-import com.sparta.hanghaememo.dto.MemoMapping;
+import com.sparta.hanghaememo.dto.DeleteResponseDto;
 import com.sparta.hanghaememo.dto.MemoRequestDto;
 import com.sparta.hanghaememo.dto.MemoResponseDto;
 import com.sparta.hanghaememo.entity.Memo;
+import com.sparta.hanghaememo.entity.User;
+import com.sparta.hanghaememo.jwt.JwtUtil;
 import com.sparta.hanghaememo.repository.MemoRepository;
+import com.sparta.hanghaememo.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MemoService {
 
     private final MemoRepository memoRepository;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     @Transactional
-    public Memo createMemo(MemoRequestDto requestDto){//생성
-        Memo memo = new Memo(requestDto);
+    public Memo createMemo(MemoRequestDto requestDto, HttpServletRequest request) {//생성
+
+        String token = jwtUtil.resolveToken(request); //request에서 token 가져오기
+        Claims claims = null; //username 담을 변
+
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {//유효한 토큰인지 검사
+                claims = jwtUtil.getUserInfoFromToken(token);// 토큰에서 사용자 정보 가져오기
+            } else {//유효한 토큰이 아니면
+                throw new IllegalArgumentException("Token Error"); //토큰 에러 메세지 출력
+            }
+        }
+
+        //1. user에서 username으로 찾는다
+        User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+        );
+
+        //2. memo에 username에 저장해준다
+
+        Memo memo = new Memo(requestDto, user.getUsername());
         memoRepository.save(memo);
         return memo;
     }
 
     @Transactional
-    public List<MemoMapping> getMemos(){//조회
-        List<MemoMapping> allByOrderByModifiedAtDesc = memoRepository.findAllByOrderByModifiedAtDesc();
-        return allByOrderByModifiedAtDesc;
+    public List<MemoResponseDto> getMemos(){//조회
+        return memoRepository.findAllByOrderByModifiedAtDesc().stream()
+                .map(MemoResponseDto::new)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -42,30 +70,59 @@ public class MemoService {
     }
 
     @Transactional
-    public Long update(Long id, MemoRequestDto requestDto) {//수정
+    public MemoRequestDto update(Long id, MemoRequestDto requestDto, HttpServletRequest request) {//수정
+
+        String token = jwtUtil.resolveToken(request); //request에서 token 가져오기
+        Claims claims = null; //username 담을 변수
+
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {//유효한 토큰인지 검사
+                claims = jwtUtil.getUserInfoFromToken(token);// 토큰에서 사용자 정보 가져오기
+            } else {//유효한 토큰이 아니면
+                throw new IllegalArgumentException("Token Error"); //토큰 에러 메세지 출력
+            }
+        }
+
         Memo memo = memoRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
 
-        String pwd = requestDto.findPwd(requestDto);
-
-        if(pwd.equals(memo.getPwd())){
-            memo.update(requestDto);
+        if(memo.getUsername().equals(claims.getSubject()) == false){
+            throw new IllegalArgumentException("본인이 작성한 메모만 수정할 수 있습니다.");
         }
-        return memo.getId();
+
+        memo.update(requestDto);
+
+        return requestDto;
     }
 
     @Transactional
-    public Long deleteMemo(Long id, MemoRequestDto requestDto) { //삭제
+    public DeleteResponseDto deleteMemo(Long id, MemoRequestDto requestDto, HttpServletRequest request) { //삭제
+
+        String token = jwtUtil.resolveToken(request); //request에서 token 가져오기
+        Claims claims = null; //username 담을 변수
+
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {//유효한 토큰인지 검사
+                claims = jwtUtil.getUserInfoFromToken(token);// 토큰에서 사용자 정보 가져오기
+            } else {//유효한 토큰이 아니면
+                throw new IllegalArgumentException("Token Error"); //토큰 에러 메세지 출력
+            }
+        }
+
         Memo memo = memoRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
-        String pwd = requestDto.findPwd(requestDto);
 
-        if(pwd.equals(memo.getPwd())){
-            memoRepository.deleteById(id);
+        if(memo.getUsername().equals(claims.getSubject()) == false){
+            throw new IllegalArgumentException("본인이 작성한 메모만 삭제할 수 있습니다.");
         }
 
-        return id;
+        memoRepository.deleteById(id);
+
+        DeleteResponseDto deleteResponseDto = new DeleteResponseDto();
+
+        return deleteResponseDto;
     }
-}
+
+    }

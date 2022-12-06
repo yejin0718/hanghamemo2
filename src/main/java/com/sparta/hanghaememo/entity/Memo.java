@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Getter
 @Entity
@@ -26,19 +25,20 @@ public class Memo extends Timestamped{
     private String contents;
 
     @Column(nullable = false)
-    private String pwd;
+    private String user_name;
 
-    public Memo(MemoRequestDto requestDto){
+    public Memo(MemoRequestDto requestDto, String username){
         this.username = requestDto.getUsername();
         this.title = requestDto.getTitle();
         this.contents = requestDto.getContents();
-        this.pwd = requestDto.getPwd();
+        this.user_name = username;
     }
 
     public void update(MemoRequestDto requestDto) {
-        this.username = requestDto.getUsername();
         this.title = requestDto.getTitle();
         this.contents = requestDto.getContents();
     }
+
+
 
 }

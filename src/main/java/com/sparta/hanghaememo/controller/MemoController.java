@@ -1,6 +1,6 @@
 package com.sparta.hanghaememo.controller;
 
-import com.sparta.hanghaememo.dto.MemoMapping;
+import com.sparta.hanghaememo.dto.DeleteResponseDto;
 import com.sparta.hanghaememo.dto.MemoRequestDto;
 import com.sparta.hanghaememo.dto.MemoResponseDto;
 import com.sparta.hanghaememo.entity.Memo;
@@ -9,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,12 +24,12 @@ public class MemoController {
     }
 
     @PostMapping("/api/memos") //생성
-    public Memo createMemo(@RequestBody MemoRequestDto requestDto){
-        return memoService.createMemo(requestDto);
+    public Memo createMemo(@RequestBody MemoRequestDto requestDto,HttpServletRequest request){
+        return memoService.createMemo(requestDto, request);
     }
 
     @GetMapping("/api/memos") //조회
-    public List<MemoMapping> getMemos(){
+    public List<MemoResponseDto> getMemos(){
         return memoService.getMemos();
     }
 
@@ -39,12 +39,13 @@ public class MemoController {
     }
 
     @PutMapping("/api/memos/{id}") //수정
-    public Long updateMemo(@PathVariable Long id, @RequestBody MemoRequestDto requestDto){
-        return memoService.update(id, requestDto);
+    public MemoRequestDto updateMemo(@PathVariable Long id, @RequestBody MemoRequestDto requestDto,HttpServletRequest request){
+        return memoService.update(id, requestDto, request);
     }
 
     @DeleteMapping("/api/memos/{id}") //삭제
-    public Long deleteMemo(@PathVariable Long id, @RequestBody MemoRequestDto requestDto){
-        return memoService.deleteMemo(id, requestDto);
+    public DeleteResponseDto deleteMemo(@PathVariable Long id, @RequestBody MemoRequestDto requestDto, HttpServletRequest request){
+        return memoService.deleteMemo(id, requestDto, request);
     }
+
 }
