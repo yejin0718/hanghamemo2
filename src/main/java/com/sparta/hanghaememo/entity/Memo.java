@@ -24,15 +24,16 @@ public class Memo extends Timestamped{
     @Column(nullable = false)
     private String contents;
 
-    @Column(nullable = false)
-    private String user_name;
+    @ManyToOne
+    @JoinColumn(name="USER_ID")
+    private User user;
 
-    public Memo(MemoRequestDto requestDto, String username){
+    public Memo(MemoRequestDto requestDto, User user){
         this.username = requestDto.getUsername();
         this.title = requestDto.getTitle();
         this.contents = requestDto.getContents();
-        this.user_name = username;
-    }
+        this.user = user;
+    } //이부분을 빼고 디티오에 ? 의존성? 음?
 
     public void update(MemoRequestDto requestDto) {
         this.title = requestDto.getTitle();

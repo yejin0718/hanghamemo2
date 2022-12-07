@@ -45,8 +45,8 @@ public class MemoService {
         );
 
         //2. memo에 username에 저장해준다
+        Memo memo = new Memo(requestDto, user);
 
-        Memo memo = new Memo(requestDto, user.getUsername());
         memoRepository.save(memo);
         return memo;
     }
@@ -87,7 +87,7 @@ public class MemoService {
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
 
-        if(memo.getUsername().equals(claims.getSubject()) == false){
+        if(memo.getUser().getUsername().equals(claims.getSubject()) == false){
             throw new IllegalArgumentException("본인이 작성한 메모만 수정할 수 있습니다.");
         }
 
@@ -113,8 +113,9 @@ public class MemoService {
         Memo memo = memoRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
+        System.out.println("claims.getId() = " + claims.getId());
 
-        if(memo.getUsername().equals(claims.getSubject()) == false){
+        if(memo.getUser().getUsername().equals(claims.getSubject()) == false){
             throw new IllegalArgumentException("본인이 작성한 메모만 삭제할 수 있습니다.");
         }
 
