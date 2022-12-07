@@ -28,6 +28,10 @@ public class MemoService {
     @Transactional
     public Memo createMemo(MemoRequestDto requestDto, HttpServletRequest request) {//생성
 
+        String username = requestDto.getUsername();
+        String title = requestDto.getTitle();
+        String contens = requestDto.getContents();
+
         String token = jwtUtil.resolveToken(request); //request에서 token 가져오기
         Claims claims = null; //username 담을 변
 
@@ -45,7 +49,7 @@ public class MemoService {
         );
 
         //2. memo에 username에 저장해준다
-        Memo memo = new Memo(requestDto, user);
+        Memo memo = new Memo(username, title, contens, user);
 
         memoRepository.save(memo);
         return memo;

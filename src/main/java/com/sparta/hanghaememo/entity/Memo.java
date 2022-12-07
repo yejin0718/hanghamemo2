@@ -28,10 +28,10 @@ public class Memo extends Timestamped{
     @JoinColumn(name="USER_ID")
     private User user;
 
-    public Memo(MemoRequestDto requestDto, User user){
-        this.username = requestDto.getUsername();
-        this.title = requestDto.getTitle();
-        this.contents = requestDto.getContents();
+    public Memo(String username,String title, String contents, User user){
+        this.username = username;
+        this.title = title;
+        this.contents = contents;
         this.user = user;
     } //이부분을 빼고 디티오에 ? 의존성? 음?
 
