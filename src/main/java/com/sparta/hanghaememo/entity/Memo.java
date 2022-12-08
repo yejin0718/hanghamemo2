@@ -35,11 +35,9 @@ public class Memo extends Timestamped{
         this.user = user;
     } //이부분을 빼고 디티오에 ? 의존성? 음?
 
-    public void update(MemoRequestDto requestDto) {
-        this.title = requestDto.getTitle();
-        this.contents = requestDto.getContents();
+
+    public void update(String title, String contents) {
+        this.title = title;
+        this.contents = contents;
     }
-
-
-
 }

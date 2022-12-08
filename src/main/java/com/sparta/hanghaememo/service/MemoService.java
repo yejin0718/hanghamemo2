@@ -3,6 +3,7 @@ package com.sparta.hanghaememo.service;
 import com.sparta.hanghaememo.dto.DeleteResponseDto;
 import com.sparta.hanghaememo.dto.MemoRequestDto;
 import com.sparta.hanghaememo.dto.MemoResponseDto;
+import com.sparta.hanghaememo.dto.UpdateResponseDto;
 import com.sparta.hanghaememo.entity.Memo;
 import com.sparta.hanghaememo.entity.User;
 import com.sparta.hanghaememo.jwt.JwtUtil;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +32,7 @@ public class MemoService {
 
         String username = requestDto.getUsername();
         String title = requestDto.getTitle();
-        String contens = requestDto.getContents();
+        String contents = requestDto.getContents();
 
         String token = jwtUtil.resolveToken(request); //request에서 token 가져오기
         Claims claims = null; //username 담을 변
@@ -43,13 +45,15 @@ public class MemoService {
             }
         }
 
+//        System.out.println("claims.getSubject() = " + claims.getSubject());
+
         //1. user에서 username으로 찾는다
         User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
                 () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
         );
 
         //2. memo에 username에 저장해준다
-        Memo memo = new Memo(username, title, contens, user);
+        Memo memo = new Memo(username, title, contents, user);
 
         memoRepository.save(memo);
         return memo;
@@ -74,7 +78,7 @@ public class MemoService {
     }
 
     @Transactional
-    public MemoRequestDto update(Long id, MemoRequestDto requestDto, HttpServletRequest request) {//수정
+    public UpdateResponseDto update(Long id, MemoRequestDto requestDto, HttpServletRequest request) {//수정
 
         String token = jwtUtil.resolveToken(request); //request에서 token 가져오기
         Claims claims = null; //username 담을 변수
@@ -91,13 +95,21 @@ public class MemoService {
                 () -> new IllegalArgumentException("아이디가 존재하지 않습니다.")
         );
 
+        System.out.println("memo.getUser().getUsername() = " + memo.getUser().getUsername());
+        System.out.println("claims.getSubject() = " + claims.getSubject());
+
         if(memo.getUser().getUsername().equals(claims.getSubject()) == false){
             throw new IllegalArgumentException("본인이 작성한 메모만 수정할 수 있습니다.");
         }
 
-        memo.update(requestDto);
+        String title = requestDto.getTitle();
+        String contents = requestDto.getContents();
 
-        return requestDto;
+        memo.update(title, contents);
+
+        UpdateResponseDto updateResponseDto = new UpdateResponseDto(title, contents);
+
+        return updateResponseDto;
     }
 
     @Transactional

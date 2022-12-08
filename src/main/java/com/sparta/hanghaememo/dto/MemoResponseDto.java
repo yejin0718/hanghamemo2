@@ -18,4 +18,5 @@ public class MemoResponseDto {
         this.contents = memo.getContents();
         this.createdAt = memo.getCreatedAt();
     }
+
 }
